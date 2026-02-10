@@ -118,7 +118,7 @@ func (s *S3ReadSeeker) Read(b []byte) (int, error) {
 	}
 
 	n, err := s.r.Read(b)
-	fmt.Printf("read %d bytes\n", n)
+	fmt.Printf("read %d bytes\n, error: %v\n", n, err)
 	s.offset += int64(n)
 
 	if err != nil && errors.Is(err, io.EOF) {
