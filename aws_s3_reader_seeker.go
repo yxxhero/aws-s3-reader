@@ -118,8 +118,14 @@ func (s *S3ReadSeeker) Read(b []byte) (int, error) {
 	}
 
 	n, err := s.r.Read(b)
+	if n == 0 && s.offset < int64(s.getSize()) && err != nil && errors.Is(err, io.EOF) {
+		fmt.Printf("fetching next chunk, offset=%d, lastByte=%d\n", s.offset, s.lastByte)
+		if err := s.fetch(s.chunkSizePolicy.ChunkSize()); err != nil {
+			return n, err
+		}
+		n, err = s.r.Read(b)
+	}
 	s.offset += int64(n)
-	fmt.Printf("read %d bytes, offset %d, error: %v\n", n, s.offset, err)
 
 	if err != nil && errors.Is(err, io.EOF) {
 		return n, s.fetch(s.chunkSizePolicy.ChunkSize())
@@ -169,16 +175,11 @@ func (s *S3ReadSeeker) fetch(n int) error {
 	if err != nil {
 		return fmt.Errorf("cannot fetch bytes=%d-%d: %w", s.offset, s.lastByte, err)
 	}
-	fmt.Printf("fetched bytes=%d-%d\n", s.offset, s.lastByte)
-	fmt.Printf("response content length: %d\n", *resp.ContentLength)
-	fmt.Printf("response content range: %s\n", *resp.ContentRange)
 
 	allBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Printf("cannot read body: %v\n", err)
 		return err
 	}
-	fmt.Printf("read body: %d bytes\n", len(allBytes))
 	s.r = io.NopCloser(bytes.NewReader(allBytes))
 	return nil
 }
