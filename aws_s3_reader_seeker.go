@@ -71,7 +71,7 @@ func (s *S3ReadSeeker) Seek(offset int64, whence int) (int64, error) {
 		}
 		discardBytes = int(offset - s.offset)
 		s.offset = offset
-    case io.SeekEnd:
+	case io.SeekEnd:
 		if offset > 0 {
 			return 0, errors.New("cannot seek beyond end")
 		}
@@ -167,6 +167,9 @@ func (s *S3ReadSeeker) fetch(n int) error {
 	if err != nil {
 		return fmt.Errorf("cannot fetch bytes=%d-%d: %w", s.offset, s.lastByte, err)
 	}
+	fmt.Printf("fetched bytes=%d-%d\n", s.offset, s.lastByte)
+	fmt.Printf("response content length: %d\n", *resp.ContentLength)
+	fmt.Printf("response content range: %s\n", *resp.ContentRange)
 	s.r = resp.Body
 	return nil
 }
