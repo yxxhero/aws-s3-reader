@@ -180,6 +180,7 @@ func (s *S3ReadSeeker) fetch(n int) error {
 	if err != nil {
 		return err
 	}
+	fmt.Printf("fetched bytes=%d-%d, len=%d\n", s.offset, s.lastByte, len(allBytes))
 	s.r = io.NopCloser(bytes.NewReader(allBytes))
 	return nil
 }
