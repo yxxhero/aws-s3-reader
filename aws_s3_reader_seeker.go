@@ -1,6 +1,7 @@
 package awss3reader
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -171,6 +172,13 @@ func (s *S3ReadSeeker) fetch(n int) error {
 	fmt.Printf("fetched bytes=%d-%d\n", s.offset, s.lastByte)
 	fmt.Printf("response content length: %d\n", *resp.ContentLength)
 	fmt.Printf("response content range: %s\n", *resp.ContentRange)
-	s.r = resp.Body
+
+	allBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Printf("cannot read body: %v\n", err)
+		return err
+	}
+	fmt.Printf("read body: %d bytes\n", len(allBytes))
+	s.r = io.NopCloser(bytes.NewReader(allBytes))
 	return nil
 }
