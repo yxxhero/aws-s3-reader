@@ -118,8 +118,8 @@ func (s *S3ReadSeeker) Read(b []byte) (int, error) {
 	}
 
 	n, err := s.r.Read(b)
-	fmt.Printf("read %d bytes\n, error: %v\n", n, err)
 	s.offset += int64(n)
+	fmt.Printf("read %d bytes, offset %d, error: %v\n", n, s.offset, err)
 
 	if err != nil && errors.Is(err, io.EOF) {
 		return n, s.fetch(s.chunkSizePolicy.ChunkSize())
@@ -130,7 +130,7 @@ func (s *S3ReadSeeker) Read(b []byte) (int, error) {
 
 func (s *S3ReadSeeker) reset() {
 	if s.r != nil {
-		s.r.Close()
+		_ = s.r.Close()
 	}
 	s.r = nil
 	s.lastByte = 0
